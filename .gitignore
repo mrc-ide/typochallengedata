@@ -1,0 +1,15 @@
+*.pptx
+*.Rproj
+.Rproj.user/*
+.Rproj.user
+.Rhistory
+.RData
+contributions
+.packages
+.Renviron
+.lib
+.drat
+.rmnist
+.httr-oauth
+.redis
+*contributions.rds
