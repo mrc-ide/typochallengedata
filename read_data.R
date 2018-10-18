@@ -1,11 +1,20 @@
+######################################################
+### read contributions ###
+######################################################
+
 date_of_contributions <- "20181018"
 
 dat <- readRDS(paste0("./contributions/", date_of_contributions, "/contributions.rds"))
 
-n <- vapply(dat, function(x) nrow(x$data), integer(1))
+n_entries_per_contribution <- vapply(dat, function(x) nrow(x$data), integer(1))
 tmp <- do.call("rbind", lapply(dat, "[[", "data"))
-ret <- cbind(id = rep(names(dat), n), tmp, stringsAsFactors = FALSE)
+ret <- cbind(id = rep(names(dat), n_entries_per_contribution), tmp, stringsAsFactors = FALSE)
 rownames(ret) <- NULL
+
+######################################################
+### source functions ###
+######################################################
+source("R/functions.R")
 
 ######################################################
 ### Characteristics of contributions ###
@@ -15,8 +24,8 @@ rownames(ret) <- NULL
 nrow(ret)
 
 ### number of contributions ###
-contributions <- names(dat)
-n_contributions <- length(contributions)
+id_contributions <- names(dat)
+n_contributions <- length(id_contributions)
 n_contributions
 
 ### Number of entries by contribution ### 
@@ -30,13 +39,36 @@ range(table(ret$id))
 
 ### TO DO: ADD ANALYSIS OF SURVEY DATA HERE ###
 
+
+######################################################
+### POTENTIAL ISSUE: DIFFERENCES IN ID RECORDED? ###
+######################################################
+
+# ids_1 <- sort(id_contributions) # defined from names(dat)
+# is not the same as:
+# ids_2 <- sort(unique(ret$id))
+# length(ids_1)
+# length(ids_2)
+
 ######################################################
 ### Characteristics of errors ###
 ######################################################
 
-### frequency of error (across all participants) ###
-prop_error <- table(ret$correct)['FALSE'] / sum(table(ret$correct))
+### frequency of error (across all contributions) ###
+freq_error <- table(ret$correct)['FALSE'] / sum(table(ret$correct))
 
+### frequency of error (per contribution) ###
+freq_error_per_contribution <- 
+  sapply(id_contributions, compute_freq_error_per_contribution)
+
+par(mfrow=c(1, 2))
+hist(freq_error_per_contribution, breaks = seq(0, 1, 0.05), col = "grey", 
+     main = "", xlab = "Frequency of error by contribution")
+plot(n_entries_per_contribution, freq_error_per_contribution,
+     col = scales::alpha("black", 0.5),
+     xlab = "Number of entries", ylab = "Frequency of error")
+
+### looking at the errors made ###
 erroneous_ret <- ret[!ret$correct,]
 
 head(erroneous_ret, 20)
