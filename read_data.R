@@ -92,5 +92,15 @@ head(erroneous_ret, 20)
 # month wrong ("September" vs 11 (! --> seen twice in first 100 entries))
 # first two digits of the year skipped
 
+#########
 
+######################################################
+### Characteristics of participants ###
+######################################################
+
+countries_from <- unlist(sapply(1:length(dat), function(e) dat[[e]]$survey$country_from))
+table(countries_from)
+
+countries_residence <- unlist(sapply(1:length(dat), function(e) dat[[e]]$survey$country_residence))
+table(countries_residence)
 
