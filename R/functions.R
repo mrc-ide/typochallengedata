@@ -7,6 +7,27 @@ compute_freq_error_per_contribution <- function(id) {
 ### error functions ###
 #################################
 
+##################
+### forget about what's below and use this as a basis for new code (thanks Rich!)
+
+# ?grep ?regex
+re <- "^'?([0-9]+)([[:punct:]]+)([0-9]+)([[:punct:]]+)([0-9]+)[[:punct:]]*$"
+i <- grepl(re, date2_char)
+date2_char[!i]
+
+x <- date2_char[i]
+list(day = sub(re, "\\1", x),
+     sep1 = sub(re, "\\2", x))
+
+j <- nchar(sub(re, "\\5", x)) == 4
+
+res <- logical(length(i))
+res[!i] <- NA
+res[i][j] <- TRUE
+##################
+
+
+
 ### handy functions ###
 extract_day <- function(date_char)
 {
@@ -37,6 +58,13 @@ is_empty <- function(date_char)
 }
 
 ### too many / too few separators ###
+is_n_sep_wrong <- function(date_char)
+{
+  tmp <- extract_sep(date_char)
+  if(length(tmp) != 2) TRUE else FALSE
+}
+
+### wrong separator (assuming correct number of separators) ###
 is_n_sep_wrong <- function(date_char)
 {
   tmp <- extract_sep(date_char)
