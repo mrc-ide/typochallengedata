@@ -23,18 +23,24 @@ extract_year <- function(date_char)
   strsplit(date_char, "/")[[1]][3]
 }
 
+extract_sep <- function(date_char)
+{
+  tmp <- as.vector(gregexpr("[0-9]", date_char)[[1]])
+  pos_sep <- setdiff(seq_len(nchar(date_char)), tmp)
+  sapply(pos_sep, function(e) substr(date_char, start = e, stop = e))
+}
+
 ### empty_entry ###
 is_empty <- function(date_char)
 {
   date_char == ""
 }
 
-### wrong separator ###
-get_sep <- function(date_char)
+### too many / too few separators ###
+is_n_sep_wrong <- function(date_char)
 {
-  tmp <- as.vector(gregexpr("[0-9]", date_char)[[1]])
-  pos_sep <- setdiff(seq_len(nchar(date_char)), tmp)
-  sapply(pos_sep, function(e) substr(date_char, start = e, stop = e))
+  tmp <- extract_sep(date_char)
+  if(length(tmp) != 2) TRUE else FALSE
 }
 
 ### day month swapped ###
