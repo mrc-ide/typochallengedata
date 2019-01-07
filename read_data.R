@@ -2,7 +2,7 @@
 ### read contributions ###
 ######################################################
 
-date_of_contributions <- "20181018"
+date_of_contributions <- "Final"
 
 dat <- readRDS(paste0("./contributions/", date_of_contributions, "/contributions.rds"))
 
@@ -29,7 +29,7 @@ n_contributions <- length(id_contributions)
 n_contributions
 
 ### Number of entries by contribution ### 
-hist(table(ret$id), breaks = seq(0, 400, 10), col = "grey", 
+hist(table(ret$id), breaks = seq(0, 460, 10), col = "grey", 
      main = "", xlab = "Number of entry by contribution")
 
 mean(table(ret$id))
