@@ -3,8 +3,11 @@ compute_freq_error_per_contribution <- function(id) {
     sum(table(ret[ret$id %in% id,]$correct))
 }
 
+#################################
 ### error functions ###
+#################################
 
+### handy functions ###
 extract_day <- function(date_char)
 {
   strsplit(date_char, "/")[[1]][1]
@@ -20,6 +23,13 @@ extract_year <- function(date_char)
   strsplit(date_char, "/")[[1]][3]
 }
 
+### empty_entry ###
+is_empty <- function(date_char)
+{
+  date_char == ""
+}
+
+### day month swapped ###
 is_day_month_swapped <- function(date1_char, date2_char) # TO DO: this does not allow for missing zeros (i.e. typing "6" instead of "06")
 {
   extract_day(date1_char) == extract_month(date2_char) &&
