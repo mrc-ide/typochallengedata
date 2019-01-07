@@ -29,6 +29,14 @@ is_empty <- function(date_char)
   date_char == ""
 }
 
+### wrong separator ###
+get_sep <- function(date_char)
+{
+  tmp <- as.vector(gregexpr("[0-9]", date_char)[[1]])
+  pos_sep <- setdiff(seq_len(nchar(date_char)), tmp)
+  sapply(pos_sep, function(e) substr(date_char, start = e, stop = e))
+}
+
 ### day month swapped ###
 is_day_month_swapped <- function(date1_char, date2_char) # TO DO: this does not allow for missing zeros (i.e. typing "6" instead of "06")
 {
