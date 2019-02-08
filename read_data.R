@@ -94,6 +94,51 @@ head(erroneous_ret, 20)
 
 #########
 
+date1_char <- erroneous_ret$date # true date
+date2_char <- erroneous_ret$user # date entered by user
+
+# regular expression to track day sep1 month sep2 year pattern
+# ?grep ?regex
+re <- "^'?([0-9]+)([[:punct:]]+)([0-9]+)([[:punct:]]+)([0-9]+)[[:punct:]]*$"
+recognised_by_regex <- grepl(re, date2_char)
+
+# empty entries
+empty_entries <- date2_char == ""
+
+# fully spelt out date (with space or punctuation to separate dates)
+re2 <- "^'?([0-9]+)([[:space:][:punct:]]+)([[:alpha:]]+)([[:space:][:punct:]]+)([0-9]+)[[:punct:]]*$"
+full_spell_out_entries <- grepl(re2, date2_char)
+date2_char[full_spell_out_entries]
+
+# missing one field (only one separator)
+re3 <- "^'?([0-9]+)([[:punct:]]+)([0-9]+)[[:punct:]]*$"
+missing_one_numeric_field <- grepl(re3, date2_char)
+
+# missing two fields (no separator)
+re4 <- "^'?([0-9]+)[[:punct:]]*$"
+missing_two_numeric_fields <- grepl(re4, date2_char)
+
+### what are we currently not capturing?  
+captured <- recognised_by_regex | empty_entries | full_spell_out_entries | missing_one_numeric_field | missing_two_numeric_fields
+date2_char[!captured] 
+date1_char[!captured] 
+prop.table(table(captured)) # <1% of errors not captured by current algorithm --> can look at these manually really!
+# table(recognised_by_regex , empty_entries , full_spell_out_entries , missing_one_numeric_field, missing_two_numeric_fields)
+
+### for those recognised by regular expressions, get day, month, year out of there ###
+x <- date2_char[recognised_by_regex]
+list(day = as.numeric(sub(re, "\\1", x)),
+     sep1 = sub(re, "\\2", x),
+     month = as.numeric(sub(re, "\\3", x)),
+     sep2 = sub(re, "\\4", x),
+     year = as.numeric(sub(re, "\\5", x)))
+
+four_digit_year <- nchar(sub(re, "\\5", x)) == 4
+
+#res <- logical(length(recognised_by_regex))
+#res[!recognised_by_regex] <- NA
+#res[recognised_by_regex][four_digit_year] <- TRUE
+
 ######################################################
 ### Characteristics of participants ###
 ######################################################

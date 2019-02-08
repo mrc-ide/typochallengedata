@@ -4,35 +4,8 @@ compute_freq_error_per_contribution <- function(id) {
 }
 
 #################################
-### error functions ###
+### error functions - ALL THE BELOW NEEDS REWRITING  USING RICH'S APPROACH WITH REGULAR EXPRESSIONS I THINK ###
 #################################
-
-##################
-### forget about what's below and use this as a basis for new code (thanks Rich!)
-
-date1_char <- erroneous_ret$date
-date2_char <- erroneous_ret$user
-
-# ?grep ?regex
-re <- "^'?([0-9]+)([[:punct:]]+)([0-9]+)([[:punct:]]+)([0-9]+)[[:punct:]]*$"
-i <- grepl(re, date2_char)
-date2_char[!i]
-
-x <- date2_char[i]
-list(day = as.numeric(sub(re, "\\1", x)),
-     sep1 = sub(re, "\\2", x),
-     month = as.numeric(sub(re, "\\3", x)),
-     sep2 = sub(re, "\\4", x),
-     year = as.numeric(sub(re, "\\5", x)))
-
-j <- nchar(sub(re, "\\5", x)) == 4
-
-res <- logical(length(i))
-res[!i] <- NA
-res[i][j] <- TRUE
-##################
-
-
 
 ### handy functions ###
 extract_day <- function(date_char)
