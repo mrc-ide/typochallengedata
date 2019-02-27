@@ -1,0 +1,94 @@
+---
+title: "Logbook Typo Challenge data analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+######################################################
+### read contributions ###
+######################################################
+
+date_of_contributions <- "Final"
+
+dat <- readRDS(paste0("./contributions/", date_of_contributions, "/contributions.rds"))
+
+n_entries_per_contribution <- vapply(dat, function(x) nrow(x$data), integer(1))
+tmp <- do.call("rbind", lapply(dat, "[[", "data"))
+ret <- cbind(id = rep(names(dat), n_entries_per_contribution), tmp, stringsAsFactors = FALSE)
+rownames(ret) <- NULL
+
+######################################################
+### source functions ###
+######################################################
+source("R/functions.R")
+```
+
+```{r}
+######################################################
+### Characteristics of contributions ###
+######################################################
+
+### number of contributions ###
+id_contributions <- names(dat)
+n_contributions <- length(id_contributions)
+
+### Number of entries by contribution ### 
+hist(table(ret$id), breaks = seq(0, 460, 10), col = "grey", 
+     main = "", xlab = "Number of entry by contribution")
+
+```
+
+The dataset collected during the TypoChallenge contains `r nrow(ret)` entries from `r n_contributions` individual contributions. Each contribution includes an average of `r mean(table(ret$id))` entries (median=`r median(table(ret$id))`, sd=`r sd(table(ret$id))`, range=`r range(table(ret$id))`).
+
+```{r}
+######################################################
+### Characteristics of errors ###
+######################################################
+
+### frequency of error (across all contributions) ###
+freq_error <- table(ret$correct)['FALSE'] / sum(table(ret$correct))
+
+### frequency of error (per contribution) ###
+freq_error_per_contribution <- 
+  sapply(id_contributions, compute_freq_error_per_contribution)
+
+par(mfrow=c(1, 2))
+hist(freq_error_per_contribution, breaks = seq(0, 1, 0.05), col = "grey", 
+     main = "", xlab = "Frequency of error by contribution")
+plot(n_entries_per_contribution, freq_error_per_contribution,
+     col = scales::alpha("black", 0.5),
+     xlab = "Number of entries", ylab = "Frequency of error")
+
+xx <- seq(from=0, to=450, length.out = 1000)
+for(i in 1:10)
+  lines(xx,i/xx,col=gray(.8))
+
+### looking at the errors made ###
+erroneous_ret <- ret[!ret$correct,]
+
+head(erroneous_ret, 20)
+```
+
+```{r}
+data_modified <- dplyr::filter(ret, elapsed < 50) %>% mutate(perc_error=100*(1-as.numeric(correct)))
+
+p <- ggplot(data_modified, aes(x=elapsed, y=perc_error)) + geom_point(size=2, alpha=0.4) +
+stat_smooth(method="loess", colour="blue", size=1.5) + facet_wrap(vars(date_format)) +
+  theme_bw() + xlab("Time taken to type (sec)") + ylab("Frequency of error (%)") + ylim(0,105)
+p
+ggsave("Freq_error.png")
+
+```
+
+
+
+
