@@ -89,6 +89,40 @@ ggsave("Freq_error.png")
 
 ```
 
+```{r}
+######################################################
+### Characteristics of participants ###
+######################################################
+
+countries_from <- unlist(sapply(1:length(dat), function(e) dat[[e]]$survey$country_from))
+table(countries_from)
+
+countries_residence <- unlist(sapply(1:length(dat), function(e) dat[[e]]$survey$country_residence))
+table(countries_residence)
+
+######################################################
+### Plot a map of the origin of contributors ###
+######################################################
+
+library("rworldmap")
+
+par(mfrow=c(1, 1))
+
+count_countries <- table(countries_from)
+count_countries <- count_countries[-1]
+
+origin_map_df <- data.frame(country = names(count_countries), freq = as.integer(count_countries), stringsAsFactors = F)
+
+origin_map_df$country[which(origin_map_df$country=="Czech Rep.")] <- "Czech republic"
+origin_map_df$country[which(origin_map_df$country=="Dominican Rep.")] <- "Dominican republic"
+
+origin_Map <- joinCountryData2Map(origin_map_df, joinCode = "NAME", verbose = TRUE,
+                              nameJoinColumn = "country")
+
+mapCountryData(origin_Map, nameColumnToPlot="freq", xlim= c(-160,180), ylim = c(-0,70) , catMethod = "pretty",
+               missingCountryCol = gray(.6), oceanCol="#f0f0ffff", addLegend="T",mapTitle = "Typo Challenge contributors")
+```
+
 
 
 
