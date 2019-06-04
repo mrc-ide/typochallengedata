@@ -57,6 +57,14 @@ range(table(ret$id))
 ### frequency of error (across all contributions) ###
 freq_error <- table(ret$correct)['FALSE'] / sum(table(ret$correct))
 
+freq_error_by_date_format <- sapply(unique(ret$date_format), function(e)
+  table(ret$correct[ret$date_format %in% e])['FALSE'] / sum(table(ret$correct[ret$date_format %in% e])))
+
+n_error_by_date_format <- sapply(unique(ret$date_format), function(e)
+  c(table(ret$correct[ret$date_format %in% e])['FALSE'] , table(ret$correct[ret$date_format %in% e])['TRUE']))
+
+n_error_by_date_format
+
 ### frequency of error (per contribution) ###
 freq_error_per_contribution <- 
   sapply(id_contributions, compute_freq_error_per_contribution)
@@ -127,13 +135,23 @@ prop.table(table(captured)) # <1% of errors not captured by current algorithm --
 
 ### for those recognised by regular expressions, get day, month, year out of there ###
 x <- date2_char[recognised_by_regex]
-list(day = as.numeric(sub(re, "\\1", x)),
+true_x <- date1_char[recognised_by_regex]
+y <- list(day = as.numeric(sub(re, "\\1", x)),
      sep1 = sub(re, "\\2", x),
      month = as.numeric(sub(re, "\\3", x)),
      sep2 = sub(re, "\\4", x),
      year = as.numeric(sub(re, "\\5", x)))
+true_y <- list(day = as.numeric(sub(re, "\\1", true_x)),
+          sep1 = sub(re, "\\2", true_x),
+          month = as.numeric(sub(re, "\\3", true_x)),
+          sep2 = sub(re, "\\4", true_x),
+          year = as.numeric(sub(re, "\\5", true_x)))
 
 four_digit_year <- nchar(sub(re, "\\5", x)) == 4
+
+did_the_date_make_sense <- (y$day %in% 1:31) & (y$month %in% 1:12) 
+swap_day_month <- (true_y$day[did_the_date_make_sense] == y$month[did_the_date_make_sense]) & 
+  (true_y$month[did_the_date_make_sense] == y$day[did_the_date_make_sense]) 
 
 #res <- logical(length(recognised_by_regex))
 #res[!recognised_by_regex] <- NA
