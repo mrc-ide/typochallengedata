@@ -127,6 +127,15 @@ mapCountryData(origin_Map, nameColumnToPlot="freq", xlim= c(-160,180), ylim = c(
 date1_char <- erroneous_ret$date # true date
 date2_char <- erroneous_ret$user # date entered by user
 
+erroneous_ret <- ret[!ret$correct,]
+
+date1_char <- erroneous_ret$date # true date
+date2_char <- erroneous_ret$user # date entered by user
+
+erroneous_ret <- data.frame(erroneous_ret, detection = NA)
+
+levels(erroneous_ret$detection) <- c("D|M|Y","empty","FullSpell","OneSep","NoSep")
+
 # regular expression to track day sep1 month sep2 year pattern
 # ?grep ?regex
 re <- "^'?([0-9]+)([[:punct:]]+)([0-9]+)([[:punct:]]+)([0-9]+)[[:punct:]]*$"
@@ -134,19 +143,28 @@ recognised_by_regex <- grepl(re, date2_char)
 
 # empty entries
 empty_entries <- date2_char == ""
+erroneous_ret$detection[recognised_by_regex] <- "D|M|Y"
+
+# empty entries
+empty_entries <- date2_char == ""
+erroneous_ret$detection[empty_entries] <- "empty"
 
 # fully spelt out date (with space or punctuation to separate dates)
 re2 <- "^'?([0-9]+)([[:space:][:punct:]]+)([[:alpha:]]+)([[:space:][:punct:]]+)([0-9]+)[[:punct:]]*$"
 full_spell_out_entries <- grepl(re2, date2_char)
 date2_char[full_spell_out_entries]
+erroneous_ret$detection[full_spell_out_entries] <- "FullSpell"
 
 # missing one field (only one separator)
 re3 <- "^'?([0-9]+)([[:punct:]]+)([0-9]+)[[:punct:]]*$"
 missing_one_numeric_field <- grepl(re3, date2_char)
+erroneous_ret$detection[missing_one_numeric_field] <- "OneSep"
+
 
 # missing two fields (no separator)
 re4 <- "^'?([0-9]+)[[:punct:]]*$"
 missing_two_numeric_fields <- grepl(re4, date2_char)
+erroneous_ret$detection[missing_two_numeric_fields] <- "NoSep"
 
 ### what are we currently not capturing?  
 captured <- recognised_by_regex | empty_entries | full_spell_out_entries | missing_one_numeric_field | missing_two_numeric_fields
@@ -194,6 +212,19 @@ for(i in 1:length(erroneous_ret$user))
     }
   #recov_date_correct[is.na(recov_date_correct)] <- FALSE 
 }
+```
+```{r}
+library(ggwaffle)
+
+erroneous_ret$detection <- as.character(erroneous_ret$detection)
+waffle_data <- waffle_iron(erroneous_ret, aes_d(group = detection), rows=30)
+
+ggplot(waffle_data, aes(x, y, fill = group)) + 
+  geom_waffle() + 
+  coord_equal() +
+  scale_fill_waffle() + 
+  theme_waffle()
+
 ```
 
 There are `r nrow(ret)` entries, of which `r sum(data_modified$correct == FALSE)` are not matching the original. Among these non matching dates, `r sum(recov_is_date)` can be recovered (using regular expressions) as valid dates. Among these valid recovered dates, `r sum(recov_date_correct)` can be matched back to the correct original date. We thus have `r sum(recov_is_date)-sum(recov_date_correct)` dates which can be used to study the error model (`r (sum(recov_is_date)-sum(recov_date_correct))/nrow(ret)*100 `% of the entries).
