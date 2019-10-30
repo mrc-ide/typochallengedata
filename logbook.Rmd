@@ -123,6 +123,78 @@ mapCountryData(origin_Map, nameColumnToPlot="freq", xlim= c(-160,180), ylim = c(
                missingCountryCol = gray(.6), oceanCol="#f0f0ffff", addLegend="T",mapTitle = "Typo Challenge contributors")
 ```
 
+```{r}
+date1_char <- erroneous_ret$date # true date
+date2_char <- erroneous_ret$user # date entered by user
 
+# regular expression to track day sep1 month sep2 year pattern
+# ?grep ?regex
+re <- "^'?([0-9]+)([[:punct:]]+)([0-9]+)([[:punct:]]+)([0-9]+)[[:punct:]]*$"
+recognised_by_regex <- grepl(re, date2_char)
 
+# empty entries
+empty_entries <- date2_char == ""
+
+# fully spelt out date (with space or punctuation to separate dates)
+re2 <- "^'?([0-9]+)([[:space:][:punct:]]+)([[:alpha:]]+)([[:space:][:punct:]]+)([0-9]+)[[:punct:]]*$"
+full_spell_out_entries <- grepl(re2, date2_char)
+date2_char[full_spell_out_entries]
+
+# missing one field (only one separator)
+re3 <- "^'?([0-9]+)([[:punct:]]+)([0-9]+)[[:punct:]]*$"
+missing_one_numeric_field <- grepl(re3, date2_char)
+
+# missing two fields (no separator)
+re4 <- "^'?([0-9]+)[[:punct:]]*$"
+missing_two_numeric_fields <- grepl(re4, date2_char)
+
+### what are we currently not capturing?  
+captured <- recognised_by_regex | empty_entries | full_spell_out_entries | missing_one_numeric_field | missing_two_numeric_fields
+date2_char[!captured] 
+date1_char[!captured] 
+prop.table(table(captured)) # <1% of errors not captured by current algorithm --> can look at these manually really!
+# table(recognised_by_regex , empty_entries , full_spell_out_entries , missing_one_numeric_field, missing_two_numeric_fields)
+
+### for those recognised by regular expressions, get day, month, year out of there ###
+x <- date2_char[recognised_by_regex]
+recovered_values <- list(day = as.numeric(sub(re, "\\1", x)),
+     sep1 = sub(re, "\\2", x),
+     month = as.numeric(sub(re, "\\3", x)),
+     sep2 = sub(re, "\\4", x),
+     year = as.numeric(sub(re, "\\5", x)))
+
+four_digit_year <- nchar(sub(re, "\\5", x)) == 4
+
+#res <- logical(length(recognised_by_regex))
+#res[!recognised_by_regex] <- NA
+#res[recognised_by_regex][four_digit_year] <- TRUE
+
+valid_day <- (recovered_values$day > 0) & (recovered_values$day <= 31)
+valid_month <- (recovered_values$month > 0) & (recovered_values$month <= 12)
+valid_year <- (recovered_values$year > 1899) & (recovered_values$year <= 2100)
+
+valid_date <- valid_day & valid_month & valid_year
+
+recov_dates <- rep(0,length(erroneous_ret$user))
+recov_date_correct <- rep(FALSE,length(erroneous_ret$user))
+recov_is_date <- rep(FALSE,length(erroneous_ret$user))
+for(i in 1:length(erroneous_ret$user))
+{
+  e_s <- erroneous_ret$user[i]
+  if(grepl(re, e_s)){
+    recov_dates[i] <- paste0(as.numeric(sub(re, "\\1", e_s)),"/",as.numeric(sub(re, "\\3", e_s)),"/",year = as.numeric(sub(re, "\\5", e_s)))
+    tentative_date <- as.Date(recov_dates[i], format="%d/%m/%Y")
+    if(!is.na(tentative_date)){
+      recov_date_correct[i] <- (as.Date(erroneous_ret$date[i], format="%d/%m/%Y") == tentative_date)
+      recov_is_date[i] <- TRUE
+    }
+    
+    } else {
+     recov_dates[i] <- NA 
+    }
+  #recov_date_correct[is.na(recov_date_correct)] <- FALSE 
+}
+```
+
+There are `r nrow(ret)` entries, of which `r sum(data_modified$correct == FALSE)` are not matching the original. Among these non matching dates, `r sum(recov_is_date)` can be recovered (using regular expressions) as valid dates. Among these valid recovered dates, `r sum(recov_date_correct)` can be matched back to the correct original date. We thus have `r sum(recov_is_date)-sum(recov_date_correct)` dates which can be used to study the error model (`r (sum(recov_is_date)-sum(recov_date_correct))/nrow(ret)*100 `% of the entries).
 
