@@ -89,39 +89,39 @@ ggsave("Freq_error.png")
 
 ```
 
-```{r}
-######################################################
-### Characteristics of participants ###
-######################################################
-
-countries_from <- unlist(sapply(1:length(dat), function(e) dat[[e]]$survey$country_from))
-table(countries_from)
-
-countries_residence <- unlist(sapply(1:length(dat), function(e) dat[[e]]$survey$country_residence))
-table(countries_residence)
-
-######################################################
-### Plot a map of the origin of contributors ###
-######################################################
-
-library("rworldmap")
-
-par(mfrow=c(1, 1))
-
-count_countries <- table(countries_from)
-count_countries <- count_countries[-1]
-
-origin_map_df <- data.frame(country = names(count_countries), freq = as.integer(count_countries), stringsAsFactors = F)
-
-origin_map_df$country[which(origin_map_df$country=="Czech Rep.")] <- "Czech republic"
-origin_map_df$country[which(origin_map_df$country=="Dominican Rep.")] <- "Dominican republic"
-
-origin_Map <- joinCountryData2Map(origin_map_df, joinCode = "NAME", verbose = TRUE,
-                              nameJoinColumn = "country")
-
-mapCountryData(origin_Map, nameColumnToPlot="freq", xlim= c(-160,180), ylim = c(-0,70) , catMethod = "pretty",
-               missingCountryCol = gray(.6), oceanCol="#f0f0ffff", addLegend="T",mapTitle = "Typo Challenge contributors")
-```
+# ```{r}
+# ######################################################
+# ### Characteristics of participants ###
+# ######################################################
+# 
+# countries_from <- unlist(sapply(1:length(dat), function(e) dat[[e]]$survey$country_from))
+# table(countries_from)
+# 
+# countries_residence <- unlist(sapply(1:length(dat), function(e) dat[[e]]$survey$country_residence))
+# table(countries_residence)
+# 
+# ######################################################
+# ### Plot a map of the origin of contributors ###
+# ######################################################
+# 
+# library("rworldmap")
+# 
+# par(mfrow=c(1, 1))
+# 
+# count_countries <- table(countries_from)
+# count_countries <- count_countries[-1]
+# 
+# origin_map_df <- data.frame(country = names(count_countries), freq = as.integer(count_countries), stringsAsFactors = F)
+# 
+# origin_map_df$country[which(origin_map_df$country=="Czech Rep.")] <- "Czech republic"
+# origin_map_df$country[which(origin_map_df$country=="Dominican Rep.")] <- "Dominican republic"
+# 
+# origin_Map <- joinCountryData2Map(origin_map_df, joinCode = "NAME", verbose = TRUE,
+#                               nameJoinColumn = "country")
+# 
+# mapCountryData(origin_Map, nameColumnToPlot="freq", xlim= c(-160,180), ylim = c(-0,70) , catMethod = "pretty",
+#                missingCountryCol = gray(.6), oceanCol="#f0f0ffff", addLegend="T",mapTitle = "Typo Challenge contributors")
+# ```
 
 ```{r}
 date1_char <- erroneous_ret$date # true date
@@ -228,4 +228,23 @@ ggplot(waffle_data, aes(x, y, fill = group)) +
 ```
 
 There are `r nrow(ret)` entries, of which `r sum(data_modified$correct == FALSE)` are not matching the original. Among these non matching dates, `r sum(recov_is_date)` can be recovered (using regular expressions) as valid dates. Among these valid recovered dates, `r sum(recov_date_correct)` can be matched back to the correct original date. We thus have `r sum(recov_is_date)-sum(recov_date_correct)` dates which can be used to study the error model (`r (sum(recov_is_date)-sum(recov_date_correct))/nrow(ret)*100 `% of the entries).
+
+```r
+is_internal_swap <- function(date1, date2){
+day_internal_swap <- paste0(substr(date1,2,2),substr(date1,1,1),substr(date1,3,10))
+if(day_internal_swap==date2) return(TRUE)
+month_internal_swap <- paste0(substr(date1,1,3),substr(date1,5,5),substr(date1,4,4),substr(date1,6,10))
+if(month_internal_swap==date2) return(TRUE) else return(FALSE)
+}
+
+for(i in 1:1643)
+{
+  if(is_internal_swap(erroneous_ret$date[i],erroneous_ret$user[i])){
+  print(i)
+}
+
+head()
+
+is_one_character_different <- function(){}
+```
 
