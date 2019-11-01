@@ -237,11 +237,24 @@ month_internal_swap <- paste0(substr(date1,1,3),substr(date1,5,5),substr(date1,4
 if(month_internal_swap==date2) return(TRUE) else return(FALSE)
 }
 
+
+is_external_swap <- function(date1, date2){
+external_swap_date <- paste0(substr(date1,4,6),substr(date1,1,3),substr(date1,7,10))
+if(external_swap_date==date2) return(TRUE) else return(FALSE)
+}
+
+n=0
 for(i in 1:1643)
 {
   if(is_internal_swap(erroneous_ret$date[i],erroneous_ret$user[i])){
-  print(i)
+  print(paste("Internal swap:", i))}
+  
+  if(is_external_swap(erroneous_ret$date[i],erroneous_ret$user[i])){
+  print(paste("External swap:", i))
+  n <- n+1}
 }
+
+
 
 head()
 
