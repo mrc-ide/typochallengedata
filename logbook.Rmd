@@ -229,7 +229,7 @@ ggplot(waffle_data, aes(x, y, fill = group)) +
 
 There are `r nrow(ret)` entries, of which `r sum(data_modified$correct == FALSE)` are not matching the original. Among these non matching dates, `r sum(recov_is_date)` can be recovered (using regular expressions) as valid dates. Among these valid recovered dates, `r sum(recov_date_correct)` can be matched back to the correct original date. We thus have `r sum(recov_is_date)-sum(recov_date_correct)` dates which can be used to study the error model (`r (sum(recov_is_date)-sum(recov_date_correct))/nrow(ret)*100 `% of the entries).
 
-```r
+```{r}
 is_internal_swap <- function(date1, date2){
 day_internal_swap <- paste0(substr(date1,2,2),substr(date1,1,1),substr(date1,3,10))
 if(day_internal_swap==date2) return(TRUE)
@@ -241,21 +241,6 @@ if(month_internal_swap==date2) return(TRUE) else return(FALSE)
 is_external_swap <- function(date1, date2){
 external_swap_date <- paste0(substr(date1,4,6),substr(date1,1,3),substr(date1,7,10))
 if(external_swap_date==date2) return(TRUE) else return(FALSE)
-}
-
-n=0
-for(i in 1:1643)
-{
-  if(is_internal_swap(erroneous_ret$date[i],erroneous_ret$user[i])){
-  print(paste("Internal swap:", i))}
-  
-  if(is_external_swap(erroneous_ret$date[i],erroneous_ret$user[i])){
-  print(paste("External swap:", i))
-  }
-  
-  if(is_neighbouring_swap(erroneous_ret$date[i],erroneous_ret$user[i])){
-  print(paste("Neighbour swap:", i))
-  n <- n+1}
 }
 
 differing_position <- function(date1, date2) {
@@ -276,6 +261,9 @@ if(sum(diff_vec)!=1) return(FALSE) else{
     if(mutation_position %in% c(3,6)) return(FALSE)
 
     #browser()
+    
+    num_char_set <- c("0","1","2","3","4","5","6","7","8","9")
+    if(!(substr(recorded_date,mutation_position,mutation_position) %in% num_char_set)) return(FALSE)
 
     original_digit <- as.numeric(substr(original_date,mutation_position,mutation_position))
     recorded_digit <- as.numeric(substr(recorded_date,mutation_position,mutation_position))
@@ -292,7 +280,60 @@ if(sum(diff_vec)!=1) return(FALSE) else{
   }
 }
 
-head()
+#0 not "mutation"
+#1 neighbouring swap
+#2 random swap
+is_mutation <- function(original_date, recorded_date) {
+
+#test that the two strings have the same length
+if(nchar(original_date)!=nchar(recorded_date)) return(0)
+
+diff_vec <- differing_position(original_date, recorded_date)
+
+if(sum(diff_vec)!=1) return(0) else{
+
+    mutation_position <- which(diff_vec)
+    
+    if(mutation_position %in% c(3,6)) return(0)
+
+    #browser()
+    
+    num_char_set <- c("0","1","2","3","4","5","6","7","8","9")
+    if(!(substr(recorded_date,mutation_position,mutation_position) %in% num_char_set)) return(0)
+
+    original_digit <- as.numeric(substr(original_date,mutation_position,mutation_position))
+    recorded_digit <- as.numeric(substr(recorded_date,mutation_position,mutation_position))
+
+    #######  is a swap from "0" to "-" considered a neighbouring swap? ; probably not
+
+    if((original_digit<9)&(recorded_digit-original_digit==1)) return(1)
+    if((original_digit>1)&(original_digit-recorded_digit==1)) return(1)
+    if((original_digit==9)&(recorded_digit==0)) return(1)
+    if((original_digit==0)&(recorded_digit==9)) return(1) else
+    return(2)
+  }
+}
+
+```
+
+```{r}
+
+n=0
+for(i in 1:1643)
+{
+  if(is_internal_swap(erroneous_ret$date[i],erroneous_ret$user[i])){
+  print(paste("Internal swap:", i))}
+  
+  if(is_external_swap(erroneous_ret$date[i],erroneous_ret$user[i])){
+  print(paste("External swap:", i))
+  }
+  
+  mutation_flag <- is_mutation(erroneous_ret$date[i],erroneous_ret$user[i])
+  if(mutation_flag != 0){
+  if(mutation_flag==1) print(paste("Neighbour swap:", i))
+  if(mutation_flag==2) print(paste("Random swap:", i))
+    n <- n+1}
+}
 
 ```
 
