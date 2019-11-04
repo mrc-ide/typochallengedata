@@ -317,23 +317,34 @@ if(sum(diff_vec)!=1) return(0) else{
 ```
 
 ```{r}
+n_erroneous <- length(erroneous_ret$date)
+
+error_class <- rep("non_classified",n_erroneous)
 
 n=0
-for(i in 1:1643)
+
+for(i in 1:n_erroneous)
 {
+  #NB one date can be no date recovered and swap if the swap led to date not existing
+  #at the moment this is classified as a swap; later best to classify using a date_valid column?
+  if(recov_date_correct[i]) error_class[i] <- "recovered_correct"
+  if(!recov_is_date[i]) error_class[i] <- "no_date_recovered"
+  
   if(is_internal_swap(erroneous_ret$date[i],erroneous_ret$user[i])){
-  print(paste("Internal swap:", i))}
+    error_class[i] <- "internal_swap" }
   
   if(is_external_swap(erroneous_ret$date[i],erroneous_ret$user[i])){
-  print(paste("External swap:", i))
-  }
+  error_class[i] <- "external_swap" }
   
   mutation_flag <- is_mutation(erroneous_ret$date[i],erroneous_ret$user[i])
   if(mutation_flag != 0){
-  if(mutation_flag==1) print(paste("Neighbour swap:", i))
-  if(mutation_flag==2) print(paste("Random swap:", i))
-    n <- n+1}
+  if(mutation_flag==1) error_class[i] <- "neighbour_swap" 
+  if(mutation_flag==2) error_class[i] <- "random_swap"
+  }
+  
 }
+
+erroneous_ret$error_class <- error_class
 
 ```
 
