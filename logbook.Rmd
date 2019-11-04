@@ -348,3 +348,4 @@ erroneous_ret$error_class <- error_class
 
 ```
 
+#### Maybe have a "likely problem" column to detect what is likely to have been the problem based on regular expression
