@@ -256,3 +256,16 @@ table(erroneous_ret$error_class)
 
 #### Maybe have a "likely problem" column to detect what is likely to have been the problem based on regular expression
 #### Look at different keyborad in term of neighbouring
+
+```{r}
+
+erroneous_ret$detection <- as.character(erroneous_ret$detection)
+waffle_data <- waffle_iron(erroneous_ret, aes_d(group = detection), rows=30)
+
+ggplot(waffle_data, aes(x, y, fill = group)) + 
+  geom_waffle() + 
+  coord_equal() +
+  scale_fill_waffle() + 
+  theme_waffle()
+
+```
