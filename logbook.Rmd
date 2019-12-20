@@ -259,13 +259,59 @@ table(erroneous_ret$error_class)
 
 ```{r}
 
-erroneous_ret$detection <- as.character(erroneous_ret$detection)
-waffle_data <- waffle_iron(erroneous_ret, aes_d(group = detection), rows=30)
+waffle_data <- waffle_iron(erroneous_ret, aes_d(group = error_class), rows=40)
 
 ggplot(waffle_data, aes(x, y, fill = group)) + 
   geom_waffle() + 
   coord_equal() +
-  scale_fill_waffle() + 
   theme_waffle()
+
+```
+
+# Overall distribution of errors
+
+```{r}
+table(erroneous_ret$error_class)/(length(erroneous_ret$error_class)-sum(erroneous_ret$error_class=="recovered_correct"))*100
+
+hw <- (erroneous_ret$date_format == "Handwritten")
+
+```
+
+# Distribution of errors for handwritten data
+
+```{r}
+hw <- (erroneous_ret$date_format == "Handwritten")
+table(erroneous_ret$error_class[hw])/(length(erroneous_ret$error_class[hw])-sum(erroneous_ret$error_class[hw]=="recovered_correct"))*100
+```
+
+# Distribution of errors for D/M/Y data
+
+```{r}
+dmy <- (erroneous_ret$date_format == "TextDayMonthYear")
+table(erroneous_ret$error_class[dmy])/(length(erroneous_ret$error_class[dmy])-sum(erroneous_ret$error_class[dmy]=="recovered_correct"))*100
+```
+
+# Distribution of errors for calendar data
+
+```{r}
+cal <- (erroneous_ret$date_format == "Calendar")
+table(erroneous_ret$error_class[cal])/(length(erroneous_ret$error_class[cal])-sum(erroneous_ret$error_class[cal]=="recovered_correct"))*100
+```
+
+# Error rates
+
+```{r}
+
+#overall
+100*(length(erroneous_ret$error_class)-sum(erroneous_ret$error_class=="recovered_correct"))/length(data_modified$date_format)
+
+#handwritten
+100*(sum(hw)-sum((erroneous_ret$error_class=="recovered_correct")&hw))/sum(data_modified$date_format=="Handwritten")
+
+#D/M/Y
+100*(sum(dmy)-sum((erroneous_ret$error_class=="recovered_correct")&dmy))/sum(data_modified$date_format=="TextDayMonthYear")
+
+#Calendar
+100*(sum(cal)-sum((erroneous_ret$error_class=="recovered_correct")&cal))/sum(data_modified$date_format=="Calendar")
 
 ```
