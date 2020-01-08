@@ -58,6 +58,45 @@ generate_neighbour_substitution_one_digit_as_char <- function(date_d, position=1
   #return(c(as.Date(s1, "%d/%m/%Y"),as.Date(s2, "%d/%m/%Y")))
 }
 
+generate_distant_substitution_one_digit_as_char <- function(date_d, position=1, kb_type="upper")
+{
+  neighbour_mat <- matrix(rep(0,20),ncol=10)
+  
+  #browser()
+  
+  #the digits, "*" codes for the character at the right of the "0" and "§" for the character at the left of the "1"
+  #TODO is it relevant to count the outside digits as potential substitutions? probably not
+  potential_substitutions <- c(as.character(1:9),"0","*","§")
+  
+  #Stores which character are the neighbouring one so that can be removed from the substitution scheme at the relevant position
+  neighbour_mat[1,] <- c(2:9,10,11)
+  neighbour_mat[2,] <- c(12,1:9)
+  
+  #browser()
+  
+  #read the value of the digit to be substituted
+  digit <- as.integer(substr(as.character(date_d, format="%d/%m/%Y"),start=position, stop = position))
+  
+  #as the velue is used for the position in the neighbour matrix, 10 is used instead of 0
+  if(digit==0) digit <- 10
+  
+  #for each digit, 9 substitutions are possible (the 12 digits minus the digit and the two neighbours) 
+  #we work through the set by removing the digit and the neighbours
+  distant_substitution_set <- potential_substitutions[-c(digit,neighbour_mat[,digit])]
+  
+  result <- NULL
+  for(s in distant_substitution_set){
+    if((s=="*")| (s=="§")) {
+      s_error <- NA}else{
+        s_error <- as.character(date_d, format="%d/%m/%Y")
+        substr(s_error,start=position, stop = position) <- s
+      }
+   result <- c(s_error,result)
+  }
+  
+  return(result)
+}
+
 generate_neighbour_substitution <- function(date_d, kb_type = "upper")
 {
   pos <- c(1,2,4,5,7,8,9,10)
@@ -65,6 +104,18 @@ generate_neighbour_substitution <- function(date_d, kb_type = "upper")
   
   for(p in pos){
     res <- c(res,generate_neighbour_substitution_one_digit_as_char(date_d=date_d,position=p,kb_type=kb_type))
+    #browser()
+  }
+  return(as.Date(res,format="%d/%m/%Y"))
+}
+
+generate_distant_substitution <- function(date_d, kb_type = "upper")
+{
+  pos <- c(1,2,4,5,7,8,9,10)
+  res <- NULL
+  
+  for(p in pos){
+    res <- c(res,generate_distant_substitution_one_digit_as_char(date_d=date_d,position=p,kb_type=kb_type))
     #browser()
   }
   return(as.Date(res,format="%d/%m/%Y"))
@@ -96,7 +147,7 @@ calculate_date_matrix <- function(start_date, end_date, p_error, format_date)
     
     ####################### internal swap #######################
     
-    #generates the potential external swap error dates
+    #generates the potential internal swap error dates
     is_date <- generate_internal_swap(date_d)
     
     #generates and adds the probabilities in the likelihood matrix
@@ -104,12 +155,19 @@ calculate_date_matrix <- function(start_date, end_date, p_error, format_date)
     
     ####################### neigbour substitution #######################
     
-    #generates the potential external swap error dates
+    #generates the potential neigbour substitution error dates
     ns_date <- generate_neighbour_substitution(date_d)
     
     #generates and adds the probabilities in the likelihood matrix
     likelihood_error_date[,d] <- likelihood_error_date[,d] + generate_vector_prob_dates(date_set = ns_date, date_space = date_d, prob=p_error$neighbour_substitution)
     
+    ####################### distant substitution #######################
+    
+    #generates the potential distant substitution error dates
+    ds_date <- generate_distant_substitution(date_d)
+    
+    #generates and adds the probabilities in the likelihood matrix
+    likelihood_error_date[,d] <- likelihood_error_date[,d] + generate_vector_prob_dates(date_set = ds_date, date_space = date_d, prob=p_error$distant_substitution)
     
   }
   
