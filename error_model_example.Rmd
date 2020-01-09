@@ -1,0 +1,50 @@
+---
+title: "Example of the error model module"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+######################################################
+### source functions ###
+######################################################
+source("R/functions.R")
+```
+
+```{r}
+
+#this list is the description of the error model
+list_errors <- list(external_swap=.04,internal_swap=.005,neighbour_substitution=0.05,distant_substitution=0.02,random=0.01)
+
+```
+
+```{r}
+#start date
+s_d <- as.Date("28/12/2019", "%d/%m/%Y")
+
+#end_date
+e_d <- as.Date("27/1/2020", "%d/%m/%Y")
+
+#date space i.e. the sequence of possible date
+d_s <- seq(from=s_d, to=e_d, by=1)
+
+#calculate the transition matrix
+trans_mat <- calculate_date_matrix(start_date=s_d,end_date=e_d, p_error=list_errors)
+```
+
+```{r}
+heatmap(trans_mat, Rowv=NA, Colv = "Rowv")
+```
+
+```{r}
+rErrorDate(n=15,date=s_d+15, date_space = d_s, date_transition = trans_mat)
+```
+
