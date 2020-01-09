@@ -126,11 +126,13 @@ calculate_date_matrix <- function(start_date, end_date, p_error, format_date)
   #sequence of potential dates
   potential_dates <- seq(from=start_date, to=end_date, by=1)
   
+  #browser()
+  
   #calculate the number of days in the date space
   length_period <- length(potential_dates)
   
   #initialise the matrix with the random given probabilities divided by the size of the date space
-  likelihood_error_date <- matrix(rep(0,length_period^2),ncol=length_period)
+  likelihood_error_date <- matrix(rep(p_error$random/length_period,length_period^2),ncol=length_period)
   
   for(d in 1:length_period)
   {
@@ -143,7 +145,7 @@ calculate_date_matrix <- function(start_date, end_date, p_error, format_date)
     es_date <- generate_external_swap(date_d)
     
     #generates and adds the probabilities in the likelihood matrix
-    likelihood_error_date[,d] <- likelihood_error_date[,d] + generate_vector_prob_dates(date_set = es_date, date_space = date_d, prob=p_error$external_swap)
+    likelihood_error_date[,d] <- likelihood_error_date[,d] + generate_vector_prob_dates(date_set = es_date, date_space = potential_dates, prob=p_error$external_swap)
     
     ####################### internal swap #######################
     
@@ -151,7 +153,7 @@ calculate_date_matrix <- function(start_date, end_date, p_error, format_date)
     is_date <- generate_internal_swap(date_d)
     
     #generates and adds the probabilities in the likelihood matrix
-    likelihood_error_date[,d] <- likelihood_error_date[,d] + generate_vector_prob_dates(date_set = es_date, date_space = date_d, prob=p_error$internal_swap)
+    likelihood_error_date[,d] <- likelihood_error_date[,d] + generate_vector_prob_dates(date_set = is_date, date_space = potential_dates, prob=p_error$internal_swap)
     
     ####################### neigbour substitution #######################
     
@@ -159,7 +161,7 @@ calculate_date_matrix <- function(start_date, end_date, p_error, format_date)
     ns_date <- generate_neighbour_substitution(date_d)
     
     #generates and adds the probabilities in the likelihood matrix
-    likelihood_error_date[,d] <- likelihood_error_date[,d] + generate_vector_prob_dates(date_set = ns_date, date_space = date_d, prob=p_error$neighbour_substitution)
+    likelihood_error_date[,d] <- likelihood_error_date[,d] + generate_vector_prob_dates(date_set = ns_date, date_space = potential_dates, prob=p_error$neighbour_substitution)
     
     ####################### distant substitution #######################
     
@@ -167,7 +169,7 @@ calculate_date_matrix <- function(start_date, end_date, p_error, format_date)
     ds_date <- generate_distant_substitution(date_d)
     
     #generates and adds the probabilities in the likelihood matrix
-    likelihood_error_date[,d] <- likelihood_error_date[,d] + generate_vector_prob_dates(date_set = ds_date, date_space = date_d, prob=p_error$distant_substitution)
+    likelihood_error_date[,d] <- likelihood_error_date[,d] + generate_vector_prob_dates(date_set = ds_date, date_space = potential_dates, prob=p_error$distant_substitution)
     
   }
   
@@ -181,6 +183,8 @@ list_errors <- list(external_swap=.04,internal_swap=.005,neighbour_substitution=
 #such that the the elements in the date_set (including each NA) have the same probabilities summing to
 generate_vector_prob_dates <- function(date_set, date_space, prob){
   
+  #browser()
+  
   #Count the number of element in the set
   n_d_set <- length(date_set)
   
@@ -189,6 +193,9 @@ generate_vector_prob_dates <- function(date_set, date_space, prob){
   
   #for each element of the set present in the space, return their respective position in the date space
   v <- sapply(date_set[present_in_d_space], FUN = function(x){return(which(date_space==x))})
+  
+  #test if v is empty in this case v=list() and return a 0 length. In this case return the 0 vector
+  if(length(v)==0) return(rep(0,length(date_space)))
   
   #for each element in the date space, produces how many times it is present in the date_set
   result <- tabulate(v, nbins = length(date_space))
