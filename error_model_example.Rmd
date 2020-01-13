@@ -48,3 +48,7 @@ heatmap(trans_mat, Rowv=NA, Colv = "Rowv")
 rErrorDate(n=15,date=s_d+15, date_space = d_s, date_transition = trans_mat)
 ```
 
+```{r}
+dErrorDate(date1 = (s_d + 4), date2 = (s_d +6), date_space = d_s, date_transition = trans_mat)
+dErrorDate(date1 = (s_d + 4), date2 = (s_d +20), date_space = d_s, date_transition = trans_mat)
+```

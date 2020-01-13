@@ -393,3 +393,9 @@ rErrorDate <- function(n, date, date_space, date_transition){
   draw_dates <- rmultinom(n=1, size=n, prob=date_transition[,d])
   return(rep(date_space,draw_dates))
 }
+
+dErrorDate <- function(date1, date2, date_space, date_transition){
+  d1 <- which(date_space==date1)
+  d2 <- which(date_space==date2)
+  return(date_transition[d2,d1])
+}
