@@ -315,3 +315,17 @@ table(erroneous_ret$error_class[cal])/(length(erroneous_ret$error_class[cal])-su
 100*(sum(cal)-sum((erroneous_ret$error_class=="recovered_correct")&cal))/sum(data_modified$date_format=="Calendar")
 
 ```
+
+```{r}
+idx <- (erroneous_ret$error_class=="recovered_correct")|(erroneous_ret$error_class=="not_recovered")
+t_multinom <- table(erroneous_ret$error_class[!idx])
+t_multinom/sum(t_multinom)
+```
+```{r}
+list_errors <- list(external_swap=0.0688,internal_swap=0.0112,neighbour_substitution=0.2784,distant_substitution=0.3656,random=0.2760)
+
+mat_e_d <- calculate_date_matrix(start_date=as.Date("28/12/2019", "%d/%m/%Y"),end_date=as.Date("27/1/2020", "%d/%m/%Y"), p_error=list_errors)
+heatmap(mat_e_d, Rowv=NA, Colv = "Rowv")
+```
+
+

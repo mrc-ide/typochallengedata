@@ -169,9 +169,9 @@ error_type <- function(original_date, recorded_date) {
   mutation_flag <- is_mutation(original_date,recorded_date)
   if(mutation_flag != 0){
     if(mutation_flag==1) return("neighbour_substitution") 
-    if(mutation_flag==2) return("random_substitution")
+    if(mutation_flag==2) return("distant_substitution")
   }
-  return("non_identified")
+  return("random")
 }
 
 recover_date <- function(date)
